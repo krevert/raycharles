@@ -47,9 +47,10 @@ class Raytracer(object):
         self.height = height
         self.image = PhotoImage(width=self.width, height=self.height)
         
-        self.camera = Vector3(0, 0, -350)
+        self.camera = Vector3(0, 0, -650)
         self.sphere_center = Vector3(0, 0, 15)
-        self.sphere_radius =200
+        self.light = Vector3(-100, 300, -650)
+        self.sphere_radius =400
         self.color_sphere = '#%02X%02X%02X' #color mask
         self.color_background = '#000000' #black
 
@@ -73,17 +74,20 @@ class Raytracer(object):
                 
                 #color red, if ray hits sphere, black otherwise
                 dotval = ray.direction.dot(part_1)
-                sqrtval = dotval**2 + part_2
+                discriminant = dotval**2 + part_2
                 
                 rgb = self.color_background
-                if (sqrtval >= 0):
-                        hit_at_t = -dotval - math.sqrt(sqrtval)
+                if (discriminant >= 0):
+                        hit_at_t = -dotval - math.sqrt(discriminant)
                         
                         hitpoint = ray.support + ray.direction.scalarmul(hit_at_t)
                         normalv = self.sphere_center.directionTo(hitpoint)
                         normalv.normalize()
-                            
-                        cosalpha = - normalv.dot(ray.direction)
+                        
+                        toLight = hitpoint.directionTo(self.light)
+                        toLight.normalize();
+
+                        cosalpha = max(0, normalv.dot(toLight))
                         redpart    = min(200 * cosalpha, 255)
                         greenpart = min(0 * cosalpha, 255)
                         bluepart   = min(0 * cosalpha, 255)
@@ -102,7 +106,7 @@ if __name__ == "__main__":
     
     root = Tk()
 
-    rt = Raytracer( 600, 600)
+    rt = Raytracer( 200, 200)
     renderimage = rt.render()
     label = Label(root, image=renderimage)
     label.pack()
